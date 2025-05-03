@@ -9,8 +9,6 @@
 #include <stdlib.h>
 
 int main() {
-	printf("Hellow World!!\n");
-
 	int image[WIDTH][HEIGHT][3];
 	init_buffer(image,GREY);
 
@@ -18,7 +16,6 @@ int main() {
 	init_scene(&scene);
 
 	Material material = {.colour=GREEN,.specular=50,.reflective=0.3};
-
 	Triangle* triangles = (Triangle*)malloc(MAX_OBJECTS*sizeof(Triangle));
 	add_model(triangles,&scene,material);
 
