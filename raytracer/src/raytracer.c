@@ -164,9 +164,5 @@ RGB trace_ray(Ray* ray, Scene* scene, int depth){
 	float i = compute_lighting(&hit,ray,scene);
 	RGB local_colour = colour_scale(hit.material->colour,i);
 
-	float reflective = hit.material->reflective;
-	if (depth<=0||reflective<=0) return local_colour;
-
-
 	return local_colour;
 }
