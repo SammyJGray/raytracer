@@ -3,12 +3,16 @@
 #include "../include/image.h"
 
 #include <math.h>
-#include <stdio.h>
 
+
+// This adjusts the coordinates such that the ray cast from pixel 0,0 is being cast from -WIDTH/2,-HEIGHT/2  in the 3d scene
 inline Vec3 canvas_to_viewport(int x, int y){
 	return (Vec3) {(x-WIDTH/2.0)*1.0/WIDTH,(y-HEIGHT/2.0)*1.0/WIDTH,1.0};
 }
 
+
+// Calculates the point of intersection between and ray and a sphere, and updates if closer than the current intersection
+// Uses the quadratic forumula to find the points of intersection
 int sphere_intersect(void* data, Ray* ray, Hit* hit){
 	Sphere* sphere = (Sphere*) data;
 	Vec3 originToSphere = vec3_sub(ray->origin,sphere->center);
@@ -36,6 +40,9 @@ int sphere_intersect(void* data, Ray* ray, Hit* hit){
 	return 1;	
 }
 
+
+// Calculates the point of intersection between the ray and a sphere, and updates if closer than the current intersection
+// Uses the moller-trumbone intersection algorithm
 int triangle_intersect(void* data, Ray* ray, Hit* hit){
 	Triangle* triangle = (Triangle*) data;
 	float epsilon = 1e-4;
@@ -70,6 +77,8 @@ int triangle_intersect(void* data, Ray* ray, Hit* hit){
 	return 1;
 }
 
+
+// Checks if a ray intersects with an axis alligned bounding box
 int AABB_intersect(AABB* bounds, Ray* ray){
 	float tMin = -INFINITY; float tMax = INFINITY;
 	float origin, direction, minBound, maxBound;
@@ -101,48 +110,63 @@ int AABB_intersect(AABB* bounds, Ray* ray){
 	return 1;
 }
 
+// Recursively checks if a ray intersects with a node and it's children until it doesn't or it reaches the leaf node
 void node_intersect(BVHNode* node, Ray* ray, Scene* scene, Hit* hit,int deep){
+	// If no intersection then return
 	if (AABB_intersect(&node->bounds,ray) == 0) return;
 	
+	// If leaf node than check intersection between every primative
 	if (node->isLeaf == 1){
 		int index;
 		for (int i = 0; i < node->len; i++){
 			index = node->indexes[i];
-			if (scene->objects[index].intersect(scene->objects[index].data,ray,hit)) hit->material = &scene->objects[index].material;
+			if (scene->objects[index].intersect(scene->objects[index].data,ray,hit)){
+				// Save the material of the closest intersection
+				hit->material = &scene->objects[index].material;
+			}
 		} return;
 	}
 	
+	// Check intersections of the node's children
 	node_intersect(node->left,ray,scene,hit,deep+1);
 	node_intersect(node->right,ray,scene,hit,deep+1);
 }
 
 
-int closest_intersection(Ray* ray, Scene* scene, Hit* hit){
+// Finds the closest intersection between a ray and a primative
+// We only normalize the vector at the end to save time spent normalizing vector that were not the closest
+void closest_intersection(Ray* ray, Scene* scene, Hit* hit){
 	node_intersect(&scene->root,ray,scene,hit,0);
 	hit->normal = vec3_normalize(hit->normal);
-	return -1;			
+	return;			
 }
 
+// Calculates the intenisty of each point based on the lighting in the scene
 float compute_lighting(Hit* hit, Ray* ray, Scene* scene){
-	float i = 0.5;
-	Vec3 lightDirection = {1,2,2};
 
 	float intensity = 0.0; Vec3 direction; float normal_dot_direction;
 	Vec3 reflected; float reflected_dot_view;
+
 	for (int i = 0; i < scene->lightsLen; i++){
+
 		if (scene->lights[i].type == AMBIENT) intensity += scene->lights[i].intensity;
+		
 		else {
 			if (scene->lights[i].type == DIRECTION) direction = scene->lights[i].direction;
 			if (scene->lights[i].type == POINT) direction = vec3_sub(scene->lights[i].posistion,hit->posistion);
 
+			// To calculate shadows, we do an intersection test with a ray posistioned at the point and in the direction of the light
+			//  If an intersection is found, than we return without adding lighting
 			Hit shadowHit = {.found=-1,.t=INFINITY,.min=0.001};
 			Ray shadowRay = {.origin=hit->posistion,.direction=direction};
 			closest_intersection(&shadowRay,scene,&shadowHit);
 			if (shadowHit.found != -1) continue;
 
+			// -- Ambient lighting --
 			normal_dot_direction = vec3_dot(hit->normal,direction);
 			if (normal_dot_direction > 0) intensity += scene->lights[i].intensity * normal_dot_direction / (vec3_magnitude(hit->normal)*vec3_magnitude(direction));
 			
+			// -- Specular lighting --
 			if (hit->material->specular != -1){
 				reflected = vec3_sub(vec3_scale(2*normal_dot_direction,hit->normal),direction);
 				Vec3 view = vec3_scale(-1,ray->direction);
@@ -156,6 +180,7 @@ float compute_lighting(Hit* hit, Ray* ray, Scene* scene){
 	return intensity;
 }
 
+// Finds the colour of each pixel
 RGB trace_ray(Ray* ray, Scene* scene, int depth){
 	Hit hit = {.found=-1,.t=INFINITY,.min=1};
 	closest_intersection(ray,scene,&hit);
@@ -166,7 +191,6 @@ RGB trace_ray(Ray* ray, Scene* scene, int depth){
 
 	float reflective = hit.material->reflective;
 	if (depth<=0||reflective<=0) return local_colour;
-
 
 	return local_colour;
 }

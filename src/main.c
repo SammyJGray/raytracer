@@ -5,15 +5,13 @@
 #include "../include/bvh.h"
 #include "../include/material.h"
 
-#include <stdio.h>
 #include <stdlib.h>
 
 int main() {
-	printf("Hellow World!!\n");
-
 	int image[WIDTH][HEIGHT][3];
 	init_buffer(image,GREY);
 
+	// -- SCENE SETUP --
 	Scene scene;
 	init_scene(&scene);
 
@@ -37,7 +35,7 @@ int main() {
 	material = (Material){.colour=YELLOW,.specular=1000,.reflective=0.5};
 	Sphere sphere4 = {(Vec3){0,-5001,0},5000};
 	add_sphere(&sphere4,&scene,material);
-	
+
 	init_bvh(&scene);
 
 	Light lightAmbient = {.type=AMBIENT,.intensity=0.2};
@@ -48,7 +46,9 @@ int main() {
 
 	Light lightDirection = {.type=DIRECTION,.intensity=0.2,.direction=(Vec3){1,4,4}};
 	add_light(&lightDirection,&scene);
+	// -- SCENE SETUP END --
 
+	// Cast ray for each pixel in the image
 	RGB colour; Ray ray;
 	for (int x = 0; x < WIDTH; x++){
 		for (int y = 0; y < HEIGHT; y++){
@@ -57,8 +57,12 @@ int main() {
 			put_pixel(image,x,y,colour);
 		}
 	}
+
+	// Free allocated memory
 	free_bvh(&scene);
 	free(triangles);
+
+	// Write image
 	write_buffer_to_PPM(image);
 	return 0;
 }	
