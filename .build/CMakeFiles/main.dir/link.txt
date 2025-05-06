@@ -1,1 +1,0 @@
-/usr/bin/cc  -fsanitize=address,undefined -fno-omit-frame-pointer -g CMakeFiles/main.dir/src/main.c.o CMakeFiles/main.dir/src/image.c.o CMakeFiles/main.dir/src/colour.c.o CMakeFiles/main.dir/src/vector.c.o CMakeFiles/main.dir/src/scene.c.o CMakeFiles/main.dir/src/raytracer.c.o CMakeFiles/main.dir/src/bvh.c.o -o /home/sammy/projects/c/raytracer/bin/main  -lm 

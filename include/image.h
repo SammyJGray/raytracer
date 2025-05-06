@@ -1,8 +1,7 @@
 #ifndef IMAGE_H
 #define IMAGE_H
 
-#include "vector.h"
-#include "colour.h"
+#include "structures/colour.h"
 
 #define WIDTH 512
 #define HEIGHT 512

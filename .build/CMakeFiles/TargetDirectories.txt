@@ -1,3 +1,0 @@
-/home/sammy/projects/c/raytracer/.build/CMakeFiles/main.dir
-/home/sammy/projects/c/raytracer/.build/CMakeFiles/edit_cache.dir
-/home/sammy/projects/c/raytracer/.build/CMakeFiles/rebuild_cache.dir

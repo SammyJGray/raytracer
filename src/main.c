@@ -1,9 +1,9 @@
 #include "../include/image.h"
-#include "../include/raytracer.h"
-#include "../include/scene.h"
-#include "../include/vector.h"
-#include "../include/bvh.h"
-#include "../include/material.h"
+#include "../include/raytracer/raytracer.h"
+#include "../include/scene/scene.h"
+#include "../include/structures/vector.h"
+#include "../include/scene/tree.h"
+#include "../include/structures/material.h"
 
 #include <stdlib.h>
 
